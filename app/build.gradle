@@ -36,5 +36,9 @@ android {
 }
 
 dependencies {
+    compile 'com.google.firebase:firebase-database:10.0.1'
     provided 'com.google.android.things:androidthings:0.4.1-devpreview'
 }
+
+
+apply plugin: 'com.google.gms.google-services'
