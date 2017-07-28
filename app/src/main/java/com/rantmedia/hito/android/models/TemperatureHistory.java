@@ -1,4 +1,4 @@
-package com.example.androidthings.myproject.models;
+package com.rantmedia.hito.android.models;
 
 /**
  * Model for a temperature history object
