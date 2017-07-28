@@ -20,9 +20,16 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+
 import com.example.androidthings.myproject.models.TemperatureHistory;
+import com.google.android.things.contrib.driver.bmx280.Bmx280;
+import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Skeleton of the main Android Things activity. Implement your device's logic
@@ -49,14 +56,36 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
-        updateCurrentTemperature(32.5);
+        readTemperature();
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+    }
+
+    private void readTemperature(){
+        // Log the current temperature
+        Bmx280 sensor = null;
+        try {
+            sensor = RainbowHat.openSensor();
+            sensor.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X);
+
+            //round temperature
+            BigDecimal a = new BigDecimal(sensor.readTemperature());
+            BigDecimal b = a.setScale(1, RoundingMode.DOWN);
+
+            Log.d(TAG, "temperature:" + b.doubleValue());
+            // Close the device when done.
+            sensor.close();
+            updateCurrentTemperature(b.doubleValue());
+        } catch (IOException e) {
+            Log.d(TAG, "Temperature read error (IO exception):" + e.getMessage());
+        }
+
+
     }
 
     //write temperature to realtime DB
