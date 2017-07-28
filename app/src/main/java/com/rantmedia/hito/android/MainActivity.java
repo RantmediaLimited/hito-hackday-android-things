@@ -17,7 +17,9 @@
 package com.rantmedia.hito.android;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
@@ -86,18 +88,16 @@ public class MainActivity extends Activity {
             Log.e(TAG, "LED Display Error (IO exception):" + e.getMessage());
         }
 
-        /*
-        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        JobInfo job = new JobInfo.Builder(TEMP_CHECK_JOB_ID,
-                new ComponentName(this, TemperatureCheckJobService.class))
-                .setPeriodic(30000, 60000)
-                .build();
 
-        int jobId = jobScheduler.schedule(job);
-        Log.e(TAG, "Job Scheduled: " + jobId);
-        */
-
-        
+        // Construct an intent that will execute the AlarmReceiver
+        Intent intent = new Intent(this, TemperatureCheckBroadcastReceiver.class);
+        // Create a PendingIntent to be triggered when the alarm goes off
+        final PendingIntent pIntent = PendingIntent.getBroadcast(this, TemperatureCheckBroadcastReceiver.REQUEST_CODE,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        // Setup periodic alarm every 5 minutes
+        long firstMillis = System.currentTimeMillis(); // alarm is set right away
+        AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        alarm.setInexactRepeating(AlarmManager.RTC, firstMillis, 1000 * 60, pIntent);
 
     }
 
