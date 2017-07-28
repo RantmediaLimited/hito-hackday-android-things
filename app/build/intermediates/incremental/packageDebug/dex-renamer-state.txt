@@ -1,4 +1,0 @@
-#Fri Jul 28 11:05:59 BST 2017
-base.0=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/transforms/dex/debug/folders/1000/1f/main
-renamed.0=classes.dex
-file.0=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/transforms/dex/debug/folders/1000/1f/main/classes.dex
