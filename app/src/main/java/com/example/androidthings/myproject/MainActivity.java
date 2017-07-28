@@ -20,6 +20,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 /**
  * Skeleton of the main Android Things activity. Implement your device's logic
  * in this class.
@@ -46,11 +49,23 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+        updateCurrentTemperature(32.5);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+    }
+
+    //write temperature to realtime DB
+    private void updateCurrentTemperature(Double temperature){
+
+        // Write a message to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+
+        myRef.child("current_temperature").setValue(temperature);
+
     }
 }
