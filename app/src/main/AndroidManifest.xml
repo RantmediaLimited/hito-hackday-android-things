@@ -41,6 +41,10 @@
         <service
             android:name=".TemperatureCheckIntentService"
             android:exported="false"></service>
+        <service
+            android:name=".TemperatureCheckJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"/>
     </application>
 
 </manifest>

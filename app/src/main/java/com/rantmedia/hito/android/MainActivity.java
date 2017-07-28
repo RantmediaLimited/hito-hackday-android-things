@@ -18,6 +18,9 @@ package com.rantmedia.hito.android;
 
 import android.app.Activity;
 import android.app.IntentService;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -60,15 +63,33 @@ import java.math.RoundingMode;
  *
  */
 public class MainActivity extends Activity {
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
-
+    private final int TEMP_CHECK_JOB_ID = 77;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent tempIntent = new Intent(this, TemperatureCheckIntentService.class);
-        startService(tempIntent);
+
+        //display HITO at start
+        AlphanumericDisplay segment = null;
+        try {
+            segment = RainbowHat.openDisplay();
+            segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
+            segment.display("HITO");
+            segment.setEnabled(true);
+            segment.close();
+
+        } catch (IOException e) {
+            Log.e(TAG, "LED Display Error (IO exception):" + e.getMessage());
+        }
+
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(new JobInfo.Builder(TEMP_CHECK_JOB_ID,
+                new ComponentName(this, TemperatureCheckJobService.class))
+                .setPeriodic( 60000 )
+                .build());
 
     }
 

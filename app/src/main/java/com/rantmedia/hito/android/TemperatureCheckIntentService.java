@@ -86,22 +86,7 @@ public class TemperatureCheckIntentService extends IntentService{
             segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
             segment.display(message);
             segment.setEnabled(true);
-
-            //turn off led after 5 s
-            final AlphanumericDisplay finalSegment = segment;
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    // this code will be executed after 2 seconds
-                    try {
-                        finalSegment.clear();
-                    } catch (IOException e) {
-                        Log.e(TAG, "LED Display Error (IO exception):" + e.getMessage());
-                    }
-                }
-            }, 5000);
             segment.close();
-
 
         } catch (IOException e) {
             Log.e(TAG, "LED Display Error (IO exception):" + e.getMessage());
