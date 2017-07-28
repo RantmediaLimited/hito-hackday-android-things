@@ -1,9 +1,11 @@
-Android Things empty project template
-=====================================
+HITO: Hot In The Office
+=======================
 
-Use this empty project as a template for your Android Things project.
+An Android things test project for the Rantmedia July 2017 Hack Day
+Goals:
 
-NOTE: this is very similar to the code created by the Android Things Empty Activity wizard on Android Studio 3+. You can use either to bootstrap your Android Things project.
+- Set up Android things on a Raspberry Pi 3 with a Rainbow HAT, and take a temperature reading at regular intervals
+- Publish the temperature to a Firebase Realtime DB
 
 Pre-requisites
 --------------

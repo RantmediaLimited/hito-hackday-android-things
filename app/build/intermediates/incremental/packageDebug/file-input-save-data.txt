@@ -1,0 +1,12 @@
+#Internal package file, do not edit.
+#Fri Jul 28 11:05:59 BST 2017
+1.base=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/transforms/dex/debug/folders/1000/1f/main
+1.file=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/transforms/dex/debug/folders/1000/1f/main/classes.dex
+2.base=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/res/resources-debug.ap_
+2.set=ANDROID_RESOURCE
+2.file=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/res/resources-debug.ap_/AndroidManifest.xml
+count=3
+1.set=DEX
+0.set=ANDROID_RESOURCE
+0.base=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/res/resources-debug.ap_
+0.file=/Users/russell/Projects/hito-hackday-android-things/app/build/intermediates/res/resources-debug.ap_/resources.arsc
