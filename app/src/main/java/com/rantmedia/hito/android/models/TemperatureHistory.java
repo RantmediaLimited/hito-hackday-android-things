@@ -16,6 +16,7 @@ package com.rantmedia.hito.android.models;
 public class TemperatureHistory {
 
     private Double temperature;
+    private Double fakeTemperature;
 
 
     public TemperatureHistory() {
@@ -25,11 +26,24 @@ public class TemperatureHistory {
         this.temperature = temperature;
     }
 
+    public TemperatureHistory(Double temperature, Double fakeTemperature) {
+        this.temperature = temperature;
+        this.fakeTemperature = fakeTemperature;
+    }
+
     public Double getTemperature() {
         return temperature;
     }
 
     public void setTemperature(Double temperature) {
         this.temperature = temperature;
+    }
+
+    public Double getFakeTemperature() {
+        return fakeTemperature;
+    }
+
+    public void setFakeTemperature(Double fakeTemperature) {
+        this.fakeTemperature = fakeTemperature;
     }
 }

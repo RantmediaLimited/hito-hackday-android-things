@@ -60,14 +60,13 @@ public class TemperatureCheckIntentService extends IntentService{
 
             //round temperature
             BigDecimal sensorData = new BigDecimal(sensor.readTemperature());
-            BigDecimal temp = sensorData.setScale(1, RoundingMode.DOWN);
 
             Log.d(TAG, "temperature:" + sensorData);
             // Close the device when done.
             sensor.close();
 
 
-            return temp;
+            return sensorData;
         } catch (IOException e) {
             Log.e(TAG, "Temperature read error (IO exception):" + e.getMessage());
         }
@@ -95,15 +94,17 @@ public class TemperatureCheckIntentService extends IntentService{
     //write temperature to realtime DB
     private void updateCurrentTemperature(Double temperature){
 
+        //as temperature is always 22.66521968841552734375 use a random number for testing to test app ranges
+        Double fakeTemp = generateRandomTemperature();
+
         // Write a message to the database
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference();
 
-        //as temperature is always 22.6, use a random number for testing
-        myRef.child("current_temperature").setValue(generateRandomTemperature());
+        myRef.child("current_temperature").setValue(fakeTemp);
 
         //add temperature history entry
-        TemperatureHistory temperatureHistory = new TemperatureHistory(temperature);
+        TemperatureHistory temperatureHistory = new TemperatureHistory(temperature, fakeTemp);
         String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
         myRef.child("temperature_history").child(timeStamp).setValue(temperatureHistory);
 
