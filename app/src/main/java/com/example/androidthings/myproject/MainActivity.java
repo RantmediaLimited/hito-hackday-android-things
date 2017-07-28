@@ -17,12 +17,19 @@
 package com.example.androidthings.myproject;
 
 import android.app.Activity;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 
 
 import com.example.androidthings.myproject.models.TemperatureHistory;
 import com.google.android.things.contrib.driver.bmx280.Bmx280;
+import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay;
+import com.google.android.things.contrib.driver.ht16k33.Ht16k33;
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -58,6 +65,30 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         readTemperature();
 
+        // Continuously report temperature.
+        final SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sensorManager.registerDynamicSensorCallback(new SensorManager.DynamicSensorCallback() {
+            @Override
+            public void onDynamicSensorConnected(Sensor sensor) {
+                if (sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
+                    sensorManager.registerListener(
+                            new SensorEventListener() {
+                                @Override
+                                public void onSensorChanged(SensorEvent event) {
+                                    Log.i(TAG, "sensor changed: " + event.values[0]);
+                                    readTemperature();
+                                }
+                                @Override
+                                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                                    Log.i(TAG, "accuracy changed: " + accuracy);
+                                }
+                            },
+                            sensor, SensorManager.SENSOR_DELAY_NORMAL);
+                }
+            }
+        });
+
+
     }
 
     @Override
@@ -65,6 +96,7 @@ public class MainActivity extends Activity {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
     }
+
 
     private void readTemperature(){
         // Log the current temperature
@@ -77,6 +109,11 @@ public class MainActivity extends Activity {
             BigDecimal a = new BigDecimal(sensor.readTemperature());
             BigDecimal b = a.setScale(1, RoundingMode.DOWN);
 
+            AlphanumericDisplay segment = RainbowHat.openDisplay();
+            segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
+            segment.display(b.toString());
+            segment.setEnabled(true);
+
             Log.d(TAG, "temperature:" + b.doubleValue());
             // Close the device when done.
             sensor.close();
@@ -85,6 +122,11 @@ public class MainActivity extends Activity {
             Log.d(TAG, "Temperature read error (IO exception):" + e.getMessage());
         }
 
+
+    }
+
+    //display on rainbow hat LED
+    private void displayOnLED(String message){
 
     }
 
