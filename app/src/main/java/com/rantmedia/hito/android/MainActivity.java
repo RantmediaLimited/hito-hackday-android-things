@@ -35,6 +35,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.rantmedia.hito.android.models.TemperatureHistory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Skeleton of the main Android Things activity. Implement your device's logic
@@ -59,8 +61,15 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final int UPDATE_INTERVAL_MS = 2000; //minimum ms elapsed between updates
+
     private Bmx280SensorDriver mEnvironmentalSensorDriver;
     private SensorManager mSensorManager;
+
+    private double displayTemp = 0.0;
+    private long mLastUpdatedTimeStamp; //timestamp so update only occurs every two seconds
+
+
 
 
 
@@ -70,6 +79,9 @@ public class MainActivity extends Activity {
 
         //get reference to sensor manager
         mSensorManager = getSystemService(SensorManager.class);
+
+        //initialise timestamp
+        mLastUpdatedTimeStamp = getTimestamp();
 
         // Initialize temperature/pressure sensors
         try {
@@ -82,13 +94,23 @@ public class MainActivity extends Activity {
         } catch (IOException e) {
             throw new RuntimeException("Error initializing BMP280", e);
         }
+    }
 
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         // Register the BMP280 temperature sensor
         Sensor temperature = mSensorManager
                 .getDynamicSensorList(Sensor.TYPE_AMBIENT_TEMPERATURE).get(0);
         mSensorManager.registerListener(mSensorEventListener, temperature,
                 SensorManager.SENSOR_DELAY_NORMAL);
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mSensorManager.unregisterListener(mSensorEventListener);
     }
 
     // Callback when SensorManager delivers new data.
@@ -98,12 +120,22 @@ public class MainActivity extends Activity {
             final float value = event.values[0];
 
             if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
-                Log.d(TAG, "Temp change noted: " + value);
-                updateCurrentTemperature(value);
+
+                //round temperature
+                BigDecimal basetemp = new BigDecimal(value);
+                basetemp = basetemp.multiply(new BigDecimal(0.6));
+                basetemp = basetemp.setScale(1, RoundingMode.DOWN);
+                long now = getTimestamp(); //current timestamp
+                long updateThreshold = mLastUpdatedTimeStamp + UPDATE_INTERVAL_MS; //earliest acceptable timestamp for an update
+
+
+                if(now > updateThreshold// minimum update time has elapsed
+                        && displayTemp != basetemp.doubleValue()){ //display temp has changed
+                    mLastUpdatedTimeStamp = getTimestamp();
+                    displayTemp = basetemp.doubleValue();
+                    updateCurrentTemperature(value);
+                }
             }
-            /*if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
-                updateBarometerDisplay(value);
-            }*/
         }
 
 
@@ -117,18 +149,16 @@ public class MainActivity extends Activity {
     //write temperature to realtime DB
     private void updateCurrentTemperature(Float temperature){
 
-
         // Write a message to the database
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference();
 
-        myRef.child("current_temperature").setValue(temperature);
+        myRef.child("current_temperature").setValue(displayTemp);
 
         //add temperature history entry
-        TemperatureHistory temperatureHistory = new TemperatureHistory(temperature.doubleValue(), temperature.doubleValue());
-        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+        TemperatureHistory temperatureHistory = new TemperatureHistory(displayTemp, temperature.doubleValue());
+        String timeStamp = String.valueOf(getTimestamp() / 1000);
         myRef.child("temperature_history").child(timeStamp).setValue(temperatureHistory);
-
     }
 
 
@@ -136,6 +166,10 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+    }
+
+    private long getTimestamp(){
+        return System.currentTimeMillis();
     }
 
 
