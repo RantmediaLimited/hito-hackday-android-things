@@ -16,8 +16,7 @@ import com.rantmedia.hito.android.models.TemperatureHistory;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Random;
 
 /**
  * (C) Copyright 2017 Rantmedia Ltd (http://www.rantmedia.com)
@@ -100,15 +99,25 @@ public class TemperatureCheckIntentService extends IntentService{
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference();
 
-        myRef.child("current_temperature").setValue(temperature);
+        //as temperature is always 22.6, use a random number for testing
+        myRef.child("current_temperature").setValue(generateRandomTemperature());
 
         //add temperature history entry
         TemperatureHistory temperatureHistory = new TemperatureHistory(temperature);
         String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
         myRef.child("temperature_history").child(timeStamp).setValue(temperatureHistory);
 
+    }
 
+    private double generateRandomTemperature(){
+        Random r = new Random();
+        double rangeMin = -10;
+        double rangeMax = 30;
+        double randomValue = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
 
+        //round temperature
+        BigDecimal basetemp = new BigDecimal(randomValue);
+        return basetemp.setScale(1, RoundingMode.DOWN).doubleValue();
     }
 
 }

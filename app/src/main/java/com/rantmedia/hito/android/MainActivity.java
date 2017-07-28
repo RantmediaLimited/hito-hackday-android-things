@@ -66,7 +66,8 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private final int TEMP_CHECK_JOB_ID = 77;
+    private final int TEMP_CHECK_JOB_ID = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +86,18 @@ public class MainActivity extends Activity {
             Log.e(TAG, "LED Display Error (IO exception):" + e.getMessage());
         }
 
+        /*
         JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        jobScheduler.schedule(new JobInfo.Builder(TEMP_CHECK_JOB_ID,
+        JobInfo job = new JobInfo.Builder(TEMP_CHECK_JOB_ID,
                 new ComponentName(this, TemperatureCheckJobService.class))
-                .setPeriodic( 60000 )
-                .build());
+                .setPeriodic(30000, 60000)
+                .build();
+
+        int jobId = jobScheduler.schedule(job);
+        Log.e(TAG, "Job Scheduled: " + jobId);
+        */
+
+        
 
     }
 
