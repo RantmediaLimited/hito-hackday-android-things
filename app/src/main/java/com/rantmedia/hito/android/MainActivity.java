@@ -21,12 +21,18 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay;
-import com.google.android.things.contrib.driver.ht16k33.Ht16k33;
-import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
+
+import com.google.android.things.contrib.driver.bmx280.Bmx280SensorDriver;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.rantmedia.hito.android.models.TemperatureHistory;
 
 import java.io.IOException;
 
@@ -53,38 +59,78 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private final int TEMP_CHECK_JOB_ID = 1;
+    private Bmx280SensorDriver mEnvironmentalSensorDriver;
+    private SensorManager mSensorManager;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //display HITO at start
-        AlphanumericDisplay segment = null;
-        try {
-            segment = RainbowHat.openDisplay();
-            segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX);
-            segment.display("HITO");
-            segment.setEnabled(true);
-            segment.close();
+        //get reference to sensor manager
+        mSensorManager = getSystemService(SensorManager.class);
 
+        // Initialize temperature/pressure sensors
+        try {
+            mEnvironmentalSensorDriver = new Bmx280SensorDriver(BoardDefaults.getI2cBus());
+            // Register the drivers with the framework
+            mEnvironmentalSensorDriver.registerTemperatureSensor();
+            mEnvironmentalSensorDriver.registerPressureSensor();
+
+            Log.d(TAG, "Initialized I2C BMP280");
         } catch (IOException e) {
-            Log.e(TAG, "LED Display Error (IO exception):" + e.getMessage());
+            throw new RuntimeException("Error initializing BMP280", e);
+        }
+
+        // Register the BMP280 temperature sensor
+        Sensor temperature = mSensorManager
+                .getDynamicSensorList(Sensor.TYPE_AMBIENT_TEMPERATURE).get(0);
+        mSensorManager.registerListener(mSensorEventListener, temperature,
+                SensorManager.SENSOR_DELAY_NORMAL);
+
+    }
+
+    // Callback when SensorManager delivers new data.
+    private SensorEventListener mSensorEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            final float value = event.values[0];
+
+            if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
+                Log.d(TAG, "Temp change noted: " + value);
+                updateCurrentTemperature(value);
+            }
+            /*if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
+                updateBarometerDisplay(value);
+            }*/
         }
 
 
-        // Construct an intent that will execute the AlarmReceiver
-        Intent intent = new Intent(this, TemperatureCheckBroadcastReceiver.class);
-        // Create a PendingIntent to be triggered when the alarm goes off
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this, TemperatureCheckBroadcastReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // Setup periodic alarm every 5 minutes
-        long firstMillis = System.currentTimeMillis(); // alarm is set right away
-        AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarm.setInexactRepeating(AlarmManager.RTC, firstMillis, 1000 * 60, pIntent);
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            Log.d(TAG, "accuracy changed: " + accuracy);
+        }
+    };
+
+    //write temperature to realtime DB
+    private void updateCurrentTemperature(Float temperature){
+
+
+        // Write a message to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
+
+        myRef.child("current_temperature").setValue(temperature);
+
+        //add temperature history entry
+        TemperatureHistory temperatureHistory = new TemperatureHistory(temperature.doubleValue(), temperature.doubleValue());
+        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+        myRef.child("temperature_history").child(timeStamp).setValue(temperatureHistory);
 
     }
+
 
     @Override
     protected void onDestroy() {
