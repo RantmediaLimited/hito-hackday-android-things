@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.androidthings.myproject.models.TemperatureHistory;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -66,6 +67,13 @@ public class MainActivity extends Activity {
         DatabaseReference myRef = database.getReference();
 
         myRef.child("current_temperature").setValue(temperature);
+
+        //add temperature history entry
+        TemperatureHistory temperatureHistory = new TemperatureHistory(temperature);
+        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+        myRef.child("temperature_history").child(timeStamp).setValue(temperatureHistory);
+
+
 
     }
 }
