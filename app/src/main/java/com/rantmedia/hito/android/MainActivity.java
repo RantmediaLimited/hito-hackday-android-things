@@ -17,10 +17,6 @@
 package com.rantmedia.hito.android;
 
 import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -61,7 +57,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int UPDATE_INTERVAL_MS = 2000; //minimum ms elapsed between updates
+    private static final int UPDATE_INTERVAL_MS = 1000 * 60 * 5; //minimum ms elapsed between updates - 5 mins
 
     private Bmx280SensorDriver mEnvironmentalSensorDriver;
     private SensorManager mSensorManager;
